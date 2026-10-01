@@ -88,7 +88,7 @@ for sheet, lang, out in (('财务汇总', 'cn', 'chart7.html'), ('Summary_EN', '
         import runpy
         g = runpy.run_path('gen_en.py', run_name='x')
         fr = g['frame']
-        title_ = 'Sanhuan (CCTC) model summary: statements, operations and key metrics (annual)'
+        title_ = 'CCTC model summary: statements, operations and key metrics (annual)'
         sub_ = '2023A-2030E; 2023A-2025A reported, 2026E onward base-case forecast (shaded)'
         src = ['Sources: company annual, interim and quarterly reports, Wind; forecasts are the base case of the author\'s model.',
                'Note: "core components & materials" follows the 2026 interim basis (electronic + communication components + materials + equipment); SOFC history is a top-customer sales proxy.']
