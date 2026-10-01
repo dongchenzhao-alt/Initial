@@ -278,7 +278,7 @@ def build_extras(wb, g):
 
     # ================================================================ quarterly
     wsq = wb.create_sheet('季度数据'); CUR[0] = '季度数据'
-    title(wsq, '三环集团 单季度利润表与利润率', '资料来源：Wind单季度利润表（公司公告值），万元÷100=百万元。增速与利润率为公式。')
+    title(wsq, '三环集团 单季度利润表、现金流与利润率', '资料来源：Wind单季度利润表与现金流量表（公司公告值），万元÷100=百万元。增速与利润率为公式。')
     qws = openpyxl.load_workbook(SRC + '三环集团[300408.SZ]-利润表(单季).xlsx', data_only=True).active
     qrows = list(qws.iter_rows(values_only=True)); qhdr = qrows[1]
     QCOLS = ['2024第一季度', '2024第二季度', '2024第三季度', '2024第四季度', '2025第一季度', '2025第二季度', '2025第三季度', '2025第四季度', '2026第一季度', '2026第二季度']
@@ -294,7 +294,18 @@ def build_extras(wb, g):
         put(wsq, f'A{r}', lab, bold=lab in ('营业收入', '归母净利润', '营业利润'))
         for j, i in enumerate(qidx):
             put(wsq, f'{CL(3 + j)}{r}', round(src_row[i] / 100, 4), NUM)
-        qr[lab] = r; r += 1
+        qr[lab] = r; REG[('季度数据', lab)] = r; r += 1
+    qcf = openpyxl.load_workbook(SRC + '三环集团[300408.SZ]-现金流量表(单季).xlsx', data_only=True).active
+    qcrows = list(qcf.iter_rows(values_only=True)); qchdr = qcrows[1]
+    qcidx = [qchdr.index(c) for c in QCOLS]
+    for lab, wl in (('经营活动现金流量净额', '经营活动产生的现金流量净额'), ('购建长期资产支付的现金', '购建固定资产、无形资产和其他长期资产支付的现金'),
+                    ('分配股利、利润或偿付利息支付的现金', '分配股利、利润或偿付利息支付的现金')):
+        src_row = [row for row in qcrows if row[0] and str(row[0]).strip() == wl][0]
+        put(wsq, f'A{r}', lab, bold=lab.startswith('经营'))
+        for j, i in enumerate(qcidx):
+            v = src_row[i]
+            put(wsq, f'{CL(3 + j)}{r}', round((v or 0) / 100, 4), NUM)
+        qr[lab] = r; REG[('季度数据', lab)] = r; r += 1
     r += 1
     section(wsq, r, '利润率与增速（公式）', 12); r += 1
     def qrow(lab, fn, fmt=PCT):
@@ -524,8 +535,11 @@ def build_extras(wb, g):
         wv.column_dimensions[CL(3 + j)].width = 12
     wv.sheet_view.showGridLines = False
 
+    from summary_v2 import build_summary
+    build_summary(wb, g)
+
     # ================================================================ order
-    order = ['封面与摘要', '假设', S_REV, S_COST, S_OPEX, S_CAP, S_WC, S_FIN, S_TAX, S_SH, S_M, S_RET, 'DCF估值', '相对估值', '敏感性分析', '情景对比',
+    order = ['封面与摘要', '财务汇总', 'Summary_EN', '假设', S_REV, S_COST, S_OPEX, S_CAP, S_WC, S_FIN, S_TAX, S_SH, S_M, S_RET, 'DCF估值', '相对估值', '敏感性分析', '情景对比',
              'SOFC敏感性', '一致预期对比', '季度数据', '历史利润表', '历史资产负债表', '历史现金流量表', '披露明细', '调研要点', '校验']
     wb._sheets = [wb[n] for n in order]
     for w in wb.worksheets:
